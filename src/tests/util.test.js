@@ -1,4 +1,8 @@
-const { calculateOne, calculateTwo } = require('../utils/util.js');
+const {
+  calculateOne,
+  calculateTwo,
+  calculateThree,
+} = require('../utils/util.js');
 
 describe('Calculate One', () => {
   it('Should add two numbers that are separated by a delimiter of comma', () => {
@@ -88,10 +92,59 @@ describe('Calculate Two', () => {
   it('Should implicitly convert empty space or missing numbers to 0', () => {
     expect(calculateTwo(',3')).toEqual(3);
   });
-  it('Should implicitly convert emptry space or missing numbers to 0', () => {
+  it('Should implicitly convert empty space or missing numbers to 0', () => {
     expect(calculateTwo('')).toEqual(0);
   });
   it('Should only return the original number if the string does not contain any delimiter', () => {
     expect(calculateTwo('2')).toEqual(2);
   });
 });
+
+describe('Calculate Three', () => {
+  it('Should add three numbers that are separated by delimiters of newline and comma', () => {
+    expect(calculateThree('1\n2,3')).toEqual(6);
+  });
+  it('Should add ten numbers that are separated by delimiters of newline and comma ', () => {
+    expect(calculateThree('\n4,5,\n\n,6,7,8,9,10,\n\n11,12,13')).toEqual(85);
+  });
+  it('Should add ten numbers that are separated by delimiters of newline and comma ', () => {
+    expect(calculateThree('\n4,,-9,10,\n\n11,,13')).toEqual(29);
+  });
+  it('Should add all numbers separated by delimiters of newline and comma', () => {
+    expect(calculateThree('2\n2\n2\n3,3,3')).toEqual(15);
+  });
+  it('Should convert non-number to 0', () => {
+    expect(
+      calculateThree(
+        'k2jkvklj22131233kj,!@#,xkjlkvj#$@4\nmkj\nlkjdfkl\n,sdkfj\n\nlksdjf'
+      )
+    ).toEqual(0);
+  });
+  it('Should implicitly convert empty space or missing numbers to 0', () => {
+    expect(calculateThree('3\n\n3,')).toEqual(6);
+  });
+  it('Should implicitly convert empty space or missing numbers to 0', () => {
+    expect(calculateThree('')).toEqual(0);
+  });
+  it('Should only return the original number if the string does not contain any delimiter', () => {
+    expect(calculateThree('2')).toEqual(2);
+  });
+  it('Should implicitly convert empty space or missing numbers to 0', () => {
+    expect(calculateThree('\n')).toEqual(0);
+  });
+  it('Should implicitly convert empty space or missing numbers to 0', () => {
+    expect(calculateThree('\n\n\n\n\n\n,,,,,\n,\n,\n')).toEqual(0);
+  });
+  it('Should convert non-numbes to 0', () => {
+    expect(calculateThree('50,,,\n\n\n\n20,lkjkslfjk')).toEqual(70);
+  });
+  it('Should convert non-numbes to 0', () => {
+    expect(calculateThree('lkjsflksjd3\n3')).toEqual(3);
+  });
+});
+
+/*
+  it('', () => {
+    expect(calculateThree('')).toEqual();
+  });
+*/

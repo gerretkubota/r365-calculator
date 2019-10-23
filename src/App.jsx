@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 import InputField from './components/InputField.jsx';
 
-import { calculateOne, calculateTwo } from './utils/util.js';
+import { calculateOne, calculateTwo, calculateThree } from './utils/util.js';
 
 import '../public/styles/main.css';
 
@@ -25,7 +25,7 @@ export default class App extends Component {
     const { userInput } = this.state;
 
     try {
-      const result = calculateTwo(userInput);
+      const result = calculateThree(userInput);
       this.setState({ result, userInput: '' });
     } catch (e) {
       throw e;

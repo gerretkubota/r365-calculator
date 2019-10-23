@@ -4,7 +4,11 @@ import PropTypes from 'prop-types';
 const InputField = ({ result, userInput, handleUserInput, handleAdd }) => (
   <div className="input-field-container">
     <div className="result">{`The result is: ${result}`}</div>
-    <input type="text" onChange={handleUserInput} value={userInput} />
+    <textarea
+      className="text-field"
+      onChange={handleUserInput}
+      value={userInput}
+    />
     <button type="button" onClick={handleAdd}>
       ADD
     </button>

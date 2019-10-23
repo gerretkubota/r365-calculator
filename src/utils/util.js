@@ -6,14 +6,19 @@ const reqOneRegex = new RegExp('[,]');
 /**
  *
  * @description
- * THis regex will look for a comma
+ * This regex will look for a comma
  */
 const reqTwoRegex = new RegExp('[,]');
-
+/**
+ *
+ * @description
+ * This regex will look for a comma and a new line as its delimiter
+ */
+const reqThreeRegex = new RegExp('[,\\n]');
 /**
  *
  * @param {array} values
- * This function will reduce a valid number to a single sum -
+ * This function will reduce valid numbers to a single sum -
  * by calculating only 2 numbers
  */
 const addReqOne = values => {
@@ -28,10 +33,10 @@ const addReqOne = values => {
   }, 0);
   return count <= 2 ? sum : new Error('Too many numbers or commas provided');
 };
-
 /**
  *
  * @param {array} values
+ * This function will reduce valid numbers to a single sum
  */
 const addReqTwo = values => {
   const sum = values.reduce((total, currentVal) => {
@@ -43,7 +48,21 @@ const addReqTwo = values => {
   }, 0);
   return sum;
 };
-
+/**
+ *
+ * @param {*} values
+ * The function will reduce valid numbers to a single sum
+ */
+const addReqThree = values => {
+  const sum = values.reduce((total, currentVal) => {
+    const num = Number(currentVal);
+    if (Number.isNaN(num) || currentVal === '') {
+      return total;
+    }
+    return total + num;
+  }, 0);
+  return sum;
+};
 /**
  *
  * @param {string} userInput
@@ -59,7 +78,6 @@ const calculateOne = userInput => {
   }
   return addReqOne(reqOneMatch);
 };
-
 /**
  *
  * @param {string} userInput
@@ -68,12 +86,23 @@ const calculateOne = userInput => {
  */
 const calculateTwo = userInput => {
   const reqTwoMatch = userInput.split(reqTwoRegex);
-
   if (reqTwoMatch.length === 1) {
     return Number(userInput) || 0;
   }
-
   return addReqTwo(reqTwoMatch);
 };
+/**
+ *
+ * @param {string} userInput
+ * This function will check the regex of the third requirement reqThreeRegex -
+ * that checks if the numbers in the string contain delimiteres of newline and comma.
+ */
+const calculateThree = userInput => {
+  const reqThreeMatch = userInput.split(reqThreeRegex);
+  if (reqThreeMatch.length === 1) {
+    return Number(userInput) || 0;
+  }
+  return addReqThree(reqThreeMatch);
+};
 
-module.exports = { calculateOne, calculateTwo };
+module.exports = { calculateOne, calculateTwo, calculateThree };

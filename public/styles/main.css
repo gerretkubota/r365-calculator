@@ -32,11 +32,15 @@
   filter: drop-shadow(0px 2px 3px #111);
 }
 
-.input-field-container input,
 .input-field-container button {
   height: 40px;
 }
-.input-field-container input,
+
+.input-field-container .text-field {
+  height: 80px;
+}
+
+.input-field-container .text-field,
 .input-field-container button,
 .result {
   font-size: 16px;
