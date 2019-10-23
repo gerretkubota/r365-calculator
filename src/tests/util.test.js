@@ -2,6 +2,7 @@ const {
   calculateOne,
   calculateTwo,
   calculateThree,
+  calculateFour,
 } = require('../utils/util.js');
 
 describe('Calculate One', () => {
@@ -143,8 +144,34 @@ describe('Calculate Three', () => {
   });
 });
 
-/*
-  it('', () => {
-    expect(calculateThree('')).toEqual();
+describe('Calculate Four', () => {
+  it('Should not accept any negative numbers', () => {
+    expect(calculateFour('-3')).toEqual(
+      new Error('Negative numbers are not allowed: -3')
+    );
   });
-*/
+  it('Should not accept any negative numbers', () => {
+    expect(calculateFour('3,,,,,,,2,\n\n3,,,-4\n-10,')).toEqual(
+      new Error('Negative numbers are not allowed: -4,-10')
+    );
+  });
+  it('Should not accept any negative numbers', () => {
+    expect(calculateFour('-3,-2,-2,-4')).toEqual(
+      new Error('Negative numbers are not allowed: -3,-2,-2,-4')
+    );
+  });
+  it('Should not accept any negative numbers', () => {
+    expect(calculateFour('-3-2-2-4')).toEqual(0);
+  });
+  it('Should not accept any negative numbers', () => {
+    expect(calculateFour('\n-4,5,\n\n,6,7,-8,9,10,\n\n11,12,13')).toEqual(
+      new Error('Negative numbers are not allowed: -4,-8')
+    );
+  });
+  it('Should convert non-numbes to 0', () => {
+    expect(calculateFour('lkjsflksjd3\n3')).toEqual(3);
+  });
+  it('Should add ten numbers that are separated by delimiters of newline and comma', () => {
+    expect(calculateFour('\n4,5,\n\n,6,7,8,9,10,\n\n11,12,13')).toEqual(85);
+  });
+});

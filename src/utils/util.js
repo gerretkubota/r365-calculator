@@ -65,6 +65,28 @@ const addReqThree = values => {
 };
 /**
  *
+ * @param {array} values
+ */
+const addReqFour = values => {
+  const negativeNumArr = [];
+  const sum = values.reduce((total, currentVal) => {
+    const num = Number(currentVal);
+    if (Number.isNaN(num) || currentVal === '') {
+      return total;
+    }
+    if (num < 0) {
+      negativeNumArr.push(num);
+    }
+    return total + num;
+  }, 0);
+  if (negativeNumArr.length === 0) {
+    return sum;
+  }
+  const negativeStr = negativeNumArr.join(',');
+  return new Error(`Negative numbers are not allowed: ${negativeStr}`);
+};
+/**
+ *
  * @param {string} userInput
  * This function will split userInput string by a comma
  */
@@ -95,7 +117,7 @@ const calculateTwo = userInput => {
  *
  * @param {string} userInput
  * This function will check the regex of the third requirement reqThreeRegex -
- * that checks if the numbers in the string contain delimiteres of newline and comma.
+ * that checks if the numbers in the string contain delimiters of newline and comma.
  */
 const calculateThree = userInput => {
   const reqThreeMatch = userInput.split(reqThreeRegex);
@@ -104,5 +126,27 @@ const calculateThree = userInput => {
   }
   return addReqThree(reqThreeMatch);
 };
+/**
+ *
+ * @param {string} userInput
+ * This function will check the regex of the fourth requirement by reusing -
+ * reqThreeRegex and checking for negative numbers in a string that contain
+ * delimiters of newline and comma.
+ */
+const calculateFour = userInput => {
+  const reqFourMatch = userInput.split(reqThreeRegex);
+  if (reqFourMatch.length === 1) {
+    const value = Number(reqFourMatch[0]);
+    if (value < 0) {
+      return new Error(`Negative numbers are not allowed: ${value}`);
+    }
+    if (value > 0) {
+      return value;
+    }
 
-module.exports = { calculateOne, calculateTwo, calculateThree };
+    return 0;
+  }
+  return addReqFour(reqFourMatch);
+};
+
+module.exports = { calculateOne, calculateTwo, calculateThree, calculateFour };
