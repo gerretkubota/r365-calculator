@@ -66,12 +66,39 @@ const addReqThree = values => {
 /**
  *
  * @param {array} values
+ * The function will reduce valid numbers to a single sum
+ * No negative numbers are allowed
  */
 const addReqFour = values => {
   const negativeNumArr = [];
   const sum = values.reduce((total, currentVal) => {
     const num = Number(currentVal);
     if (Number.isNaN(num) || currentVal === '') {
+      return total;
+    }
+    if (num < 0) {
+      negativeNumArr.push(num);
+    }
+    return total + num;
+  }, 0);
+  if (negativeNumArr.length === 0) {
+    return sum;
+  }
+  const negativeStr = negativeNumArr.join(',');
+  return new Error(`Negative numbers are not allowed: ${negativeStr}`);
+};
+/**
+ *
+ * @param {array} values
+ * The function will reduce valid numbers to a single sum
+ * No negative numbers are allowed
+ * No numbers > 1000 are allowed
+ */
+const addReqFive = values => {
+  const negativeNumArr = [];
+  const sum = values.reduce((total, currentVal) => {
+    const num = Number(currentVal);
+    if (Number.isNaN(num) || currentVal === '' || currentVal > 1000) {
       return total;
     }
     if (num < 0) {
@@ -148,5 +175,33 @@ const calculateFour = userInput => {
   }
   return addReqFour(reqFourMatch);
 };
+/**
+ *
+ * @param {string} userInput
+ * This function will check the regex of the fourth requirement by reusing -
+ * reqThreeRegex, checking for negative numbers, and numbers > 1000 in a string that contain
+ * delimiters of newline and comma.
+ */
+const calculateFive = userInput => {
+  const reqFiveMatch = userInput.split(reqThreeRegex);
+  if (reqFiveMatch.length === 1) {
+    const value = Number(reqFiveMatch[0]);
+    if (value < 0) {
+      return new Error(`Negative numbers are not allowed: ${value}`);
+    }
+    if (value > 0 && value < 1000) {
+      return value;
+    }
 
-module.exports = { calculateOne, calculateTwo, calculateThree, calculateFour };
+    return 0;
+  }
+
+  return addReqFive(reqFiveMatch);
+};
+module.exports = {
+  calculateOne,
+  calculateTwo,
+  calculateThree,
+  calculateFour,
+  calculateFive,
+};
