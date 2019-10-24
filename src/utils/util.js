@@ -12,9 +12,16 @@ const reqTwoRegex = new RegExp('[,]');
 /**
  *
  * @description
- * This regex will look for a comma and a new line as its delimiter
+ * This regex will look for a comma and a newline as its delimiter
  */
 const reqThreeRegex = new RegExp('[,\\n]');
+/**
+ * @description
+ * This regex will look for a comma, a newline, and a custom delimiter set by user
+ * //{delimiter}\n{numbers}
+ */
+const reqSixRegex = new RegExp('//.\\n.*');
+const multiReqSixRegex = new RegExp('//.\\n.*', 'g');
 /**
  *
  * @param {array} values
@@ -106,6 +113,28 @@ const addReqFive = values => {
     }
     return total + num;
   }, 0);
+  if (negativeNumArr.length > 0) {
+    const negativeStr = negativeNumArr.join(',');
+    throw Error(`Negative numbers are not allowed: ${negativeStr}`);
+  }
+  return sum;
+};
+/**
+ *
+ * @param {array} values
+ */
+const prevAddReq = values => {
+  const negativeNumArr = [];
+  const sum = values.reduce((total, currentVal) => {
+    const num = Number(currentVal);
+    if (Number.isNaN(num) || currentVal === '' || currentVal > 1000) {
+      return total;
+    }
+    if (num < 0) {
+      negativeNumArr.push(num);
+    }
+    return total + num;
+  }, 0);
   if (negativeNumArr.length === 0) {
     return sum;
   }
@@ -183,20 +212,103 @@ const calculateFour = userInput => {
  * delimiters of newline and comma.
  */
 const calculateFive = userInput => {
-  const reqFiveMatch = userInput.split(reqThreeRegex);
-  if (reqFiveMatch.length === 1) {
-    const value = Number(reqFiveMatch[0]);
-    if (value < 0) {
-      return new Error(`Negative numbers are not allowed: ${value}`);
-    }
-    if (value > 0 && value < 1000) {
-      return value;
-    }
+  try {
+    const reqFiveMatch = userInput.split(reqThreeRegex);
+    if (reqFiveMatch.length === 1) {
+      const value = Number(reqFiveMatch[0]);
+      if (value < 0) {
+        throw Error(`Negative numbers are not allowed: ${value}`);
+      }
+      if (value > 0 && value < 1000) {
+        return value;
+      }
 
-    return 0;
+      return 0;
+    }
+    return addReqFive(reqFiveMatch);
+  } catch (e) {
+    return e;
+  }
+};
+/**
+ *
+ * @param {string} userInput
+ * This function will find the reqSixRegex, if not found, no reqSixRegex in string
+ * If found, append the custom delimiter to the previous delimiters
+ * Return the new customregex along with the index position of where the delimiter was found
+ */
+const createCustomRegex = userInput => {
+  const reqSixMatch = userInput.match(reqSixRegex);
+  const multiReqSixMatch = userInput.match(multiReqSixRegex);
+  console.log('multireqsixmatch', multiReqSixMatch);
+  let customRegex = '[,\\n]';
+  if (multiReqSixMatch && reqSixMatch) {
+    if (multiReqSixMatch.length === 1) {
+      const matched = reqSixMatch[0];
+      // reqSixMatch[1] + 1 is where formula starts
+      const foundIndex = reqSixMatch.index;
+      const matchIndex = foundIndex;
+      customRegex += `|[${matched[2]}]`;
+      return { matchIndex, customRegex };
+    }
+    if (multiReqSixMatch.length >= 2) {
+      throw Error(
+        'Cannot create multiple custom delimiters in new lines or same line'
+      );
+    }
+  }
+  return null;
+};
+/**
+ *
+ * @param {array} reqMatch
+ * This function will check if the single number meets the requirements of:
+ * Not exceeding 1000 or negative number
+ */
+const checkError = reqMatch => {
+  const value = Number(reqMatch[0]);
+  if (value < 0) {
+    throw Error(`Negative numbers are not allowed: ${value}`);
+  }
+  if (value > 0 && value < 1000) {
+    return value;
   }
 
-  return addReqFive(reqFiveMatch);
+  return 0;
+};
+/**
+ *
+ * @param {string} userInput
+ * This function will look for previous delimiter requirements,
+ * as well as 1 custom delimiter that is provided and finally do calculation
+ */
+const calculateSix = userInput => {
+  try {
+    const reqSixMatch = createCustomRegex(userInput);
+    if (reqSixMatch === null) {
+      // if there are no matches, utitlize previous calculateFive function
+      return calculateFive(userInput);
+    }
+    const { matchIndex, customRegex } = reqSixMatch;
+    // With matchIndex we know that the custom delimiter starts at that index
+    // So calculate everything from 0 to matchIndex
+    const reqThreeMatch = userInput
+      .substring(0, matchIndex)
+      .split(reqThreeRegex);
+    // Calculate from matchIndex to end of userInput string
+    const reqSixStr = userInput
+      .substring(matchIndex + 2, userInput.length)
+      .split(new RegExp(customRegex));
+    const originalCalc =
+      reqThreeMatch.length === 1
+        ? checkError(reqThreeMatch)
+        : addReqFive(reqThreeMatch);
+    const calcWithCustomRegex =
+      reqSixStr.length === 1 ? checkError(reqSixStr) : addReqFive(reqSixStr);
+    return originalCalc + calcWithCustomRegex;
+  } catch (e) {
+    return e;
+  }
 };
 module.exports = {
   calculateOne,
@@ -204,4 +316,5 @@ module.exports = {
   calculateThree,
   calculateFour,
   calculateFive,
+  calculateSix,
 };

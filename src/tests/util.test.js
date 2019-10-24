@@ -4,6 +4,7 @@ const {
   calculateThree,
   calculateFour,
   calculateFive,
+  calculateSix,
 } = require('../utils/util.js');
 
 describe('Calculate One', () => {
@@ -215,5 +216,79 @@ describe('Calculate Five', () => {
   });
   it('Should add numbers that are less than 1001 that are separated by delimites of newline and comma', () => {
     expect(calculateFive('\n1000\n\n3')).toEqual(1003);
+  });
+});
+
+describe('Calculate Six', () => {
+  it('Should add 2 numbers that are separated by 1 custom delimiter', () => {
+    expect(calculateSix('//#\n2#5')).toEqual(7);
+  });
+  it('Should add numbers that are separated by custom delimiter, newline, and comma', () => {
+    expect(calculateSix('3,2,5,32,//#\n2#5,#4#2,44!#3')).toEqual(58);
+  });
+  it('Should add numbers that are separated by custom delimiter, newline, and comma', () => {
+    expect(
+      calculateSix(',,,,,2,2,2,2//#\n2#5\n\n\n\n\n\n\n\n\n,,,5#,,#5')
+    ).toEqual(25);
+  });
+  it('Should add numbers that are less than 1001 that are separated by delimites of newline and comma', () => {
+    expect(calculateSix('\n1000\n\n3kslkdjf')).toEqual(1000);
+  });
+  it('Should not able to make multiple custom delimiters on separate lines or same line', () => {
+    expect(calculateSix('//#\n2#5 \n //$\n5$3')).toEqual(
+      new Error(
+        'Cannot create multiple custom delimiters in new lines or same line'
+      )
+    );
+  });
+  it('Should not able to make multiple custom delimiters on separate lines or same line', () => {
+    expect(calculateSix('//#\n2#5 \n //*\n5#3*9')).toEqual(
+      new Error(
+        'Cannot create multiple custom delimiters in new lines or same line'
+      )
+    );
+  });
+  it('Should convert to 0 if numbers are greater than 1000', () => {
+    expect(calculateSix('1001')).toEqual(0);
+  });
+  it('Should convert to 0 if numbers are greater than 1000', () => {
+    expect(calculateSix('12398123,12,3\n\n\n,2,,,,,,,\n\n\n\n9')).toEqual(26);
+  });
+  it('Should not accept any negative numbers', () => {
+    expect(calculateSix('//$\n-3$,4,5\n')).toEqual(
+      new Error('Negative numbers are not allowed: -3')
+    );
+  });
+  it('Should not accept any negative numbers', () => {
+    expect(calculateSix('-3')).toEqual(
+      new Error('Negative numbers are not allowed: -3')
+    );
+  });
+  it('Should not accept any negative numbers', () => {
+    expect(calculateSix('3,,,,,,,2,\n\n3,,,-4\n-10,')).toEqual(
+      new Error('Negative numbers are not allowed: -4,-10')
+    );
+  });
+  it('Should not accept any negative numbers', () => {
+    expect(calculateSix('-3,-2,-2,-4')).toEqual(
+      new Error('Negative numbers are not allowed: -3,-2,-2,-4')
+    );
+  });
+  it('Should not accept any negative numbers', () => {
+    expect(calculateSix('-3-2-2-4')).toEqual(0);
+  });
+  it('Should not accept any negative numbers', () => {
+    expect(calculateSix('\n-4,5,\n\n,6,7,-8,9,10,\n\n11,12,13')).toEqual(
+      new Error('Negative numbers are not allowed: -4,-8')
+    );
+  });
+  it('Should convert non-numbers to 0', () => {
+    expect(calculateSix('lkjsflksjd3\n3')).toEqual(3);
+  });
+  it('Should add ten numbers that are separated by delimiters of newline and comma', () => {
+    expect(calculateSix('\n4,5,\n\n,6,7,8,9,10,\n\n11,12,13')).toEqual(85);
+  });
+  it('Should add numbers that are less than 1001 that are separated by delimites of newline and comma', () => {
+    expect(calculateSix('\n1000\n\n3')).toEqual(1003);
   });
 });
