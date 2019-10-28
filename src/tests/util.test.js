@@ -5,6 +5,7 @@ const {
   calculateFour,
   calculateFive,
   calculateSix,
+  calculateSeven,
 } = require('../utils/util.js');
 
 describe('Calculate One', () => {
@@ -290,5 +291,55 @@ describe('Calculate Six', () => {
   });
   it('Should add numbers that are less than 1001 that are separated by delimites of newline and comma', () => {
     expect(calculateSix('\n1000\n\n3')).toEqual(1003);
+  });
+});
+
+describe('Calculate Seven', () => {
+  it('Should add 2 numbers that are separated by 1 custom delimiter', () => {
+    expect(calculateSeven('//#\n2#5')).toEqual(7);
+  });
+  it('Should add numbers that are separated by custom delimiter with any length', () => {
+    expect(calculateSeven('//[***]\n2***5')).toEqual(7);
+  });
+  it('Should add numbers that are separated by custom delimiter with any length, comma, and newline', () => {
+    expect(calculateSeven('lkjflkj2,4,5,6,7,,,,,,//[***]\n2***5')).toEqual(29);
+  });
+  it('Should add numbers that are separated by custom delimiter with any length, custom delimiter with length 1, comma, and newline', () => {
+    expect(
+      calculateSeven(
+        'lkjflkj2,4,5,6,7,,,,,,//[***]\n2***5,,,,,\n\n\n\n\n***5**,***6,****7,8***,,,,,'
+      )
+    ).toEqual(55);
+  });
+  it('Should add numbers that are separated by custom delimiter with any length, custom delimiter with length 1, comma, and newline', () => {
+    expect(
+      calculateSeven(
+        'lkjflkj2,4,5,6,7,,,,,,//[***]\n2***5,,,,,\n\n\n\n\n***5**,***6,****7,8***,,//$\n10\n***10$50,,'
+      )
+    ).toEqual(125);
+  });
+  it('Should add numbers that are separated by custom delimiter, newline, and comma', () => {
+    expect(calculateSeven('3,2,5,32,//#\n2#5,#4#2,44!#3')).toEqual(58);
+  });
+  it('Should add numbers that are separated by custom delimiter, newline, and comma', () => {
+    expect(
+      calculateSeven(',,,,,2,2,2,2//#\n2#5\n\n\n\n\n\n\n\n\n,,,5#,,#5')
+    ).toEqual(25);
+  });
+  it('Should add 2 numbers that are separated by comma and newline', () => {
+    expect(calculateSeven('2,3')).toEqual(5);
+  });
+  it('Should not accept any negative numbers', () => {
+    expect(
+      calculateSeven(
+        'lkjflkj2,4,5,6,7,,,,,,//[***]\n2***5,,,,,\n\n\n\n\n***5**,***-6,****7,8***,,//$\n10\n***10$-50,,'
+      )
+    ).toEqual(new Error('Negative numbers are not allowed: -6'));
+  });
+  it('Should add numbers that are less than 1001 that are separated by delimites of newline and comma', () => {
+    expect(calculateSeven('//[@@@@@@]\n@@@@@@1000\n\n3kslkdjf')).toEqual(1000);
+  });
+  it('Should convert to 0 if numbers are greater than 1000', () => {
+    expect(calculateSeven('//[@#@#]\n,,,,,,,@#@#1003')).toEqual(0);
   });
 });

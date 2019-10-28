@@ -9,6 +9,7 @@ import {
   calculateFour,
   calculateFive,
   calculateSix,
+  calculateSeven,
 } from './utils/util.js';
 
 import '../public/styles/main.css';
@@ -32,7 +33,7 @@ export default class App extends Component {
     const { userInput } = this.state;
 
     try {
-      const result = calculateSix(userInput);
+      const result = calculateSeven(userInput);
       this.setState({ result, userInput: '' });
     } catch (e) {
       throw e;
