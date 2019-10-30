@@ -42,23 +42,24 @@ const reqSevenRegex = new RegExp('\/\/\\[.+\\]\\n.*');
 /**
  * @description
  */
-const findReqSevenDelimiter = new RegExp('\/\/\\[.+\\]\\n');
+const findReqSevenDelimiter = new RegExp('\/\/\\[[^\\[\\]].*\\]');
 /**
  * @description
  * This regex will look for a custom delimiter with any length set by user
  * //[{delimiter}]\n{numbers} GLOBALLY
  */
-const multiReqSevenRegex = new RegExp('\/\/\\[.+\\]\\n.*', 'g');
-
-/*
-const str = '//[h]\n4';
-const reqSevenRegex = new RegExp('//\\[.+\\]\\n.*');
-const result = str.match(reqSevenRegex);
-const delimiter = str.match(new RegExp('//\\[.+\\]\\n'))
-console.log(delimiter[0])
-console.log(delimiter[0].length)
-// console.log(str.match(reqSevenRegex));
+const multiReqSevenRegex = new RegExp('\/\/\\[[^\\[\\]].+\\]', 'g');
+/**
+ * @description
+ * This regex will make sure that the number of enclosed brackets is one
  */
+const preFindReqSevenDelimiter = new RegExp('\\[[^\\[\\]]+\\]', 'g');
+/**
+ * @description This regex will look for any amount of customer limiter with any length
+ */
+const findReqEightDelimiter = new RegExp('(\/\/)(\\[.+?\\])(\\[.+?\\])+');
+const multiReqEightRegex = new RegExp('(\/\/)(\\[.+?\\])(\\[.+?\\])+', 'g');
+
 /**
  *
  * @param {array} values
@@ -155,28 +156,6 @@ const addReqFive = values => {
     throw Error(`Negative numbers are not allowed: ${negativeStr}`);
   }
   return sum;
-};
-/**
- *
- * @param {array} values
- */
-const prevAddReq = values => {
-  const negativeNumArr = [];
-  const sum = values.reduce((total, currentVal) => {
-    const num = Number(currentVal);
-    if (Number.isNaN(num) || currentVal === '' || currentVal > 1000) {
-      return total;
-    }
-    if (num < 0) {
-      negativeNumArr.push(num);
-    }
-    return total + num;
-  }, 0);
-  if (negativeNumArr.length === 0) {
-    return sum;
-  }
-  const negativeStr = negativeNumArr.join(',');
-  return new Error(`Negative numbers are not allowed: ${negativeStr}`);
 };
 /**
  *
@@ -371,16 +350,14 @@ const createCustomRegexForAll = (userInput, delimiterRegex, multiReqRegex) => {
       // we know that a length of 4 will always be a delimiter for requirement three
       // so the delimiter will be positioned at index 2
       if (matched[2] !== '[' && matched.indexOf('\n') === 3) {
-        // const startIndex = matched.length - 2 - 1;
-        // matchedInfo.startIndex = startIndex;
-        customRegex += `[${matched[2]}]`;
+        customRegex += `${matched[2]}`;
       }
       // if the length is > 5 then we know that the delimiter is for requirement 7 and up
       // and because the delimters will be grouped in brackets, we know that the delimiter will
       // start at index 3 and end at the position of length - 3
       // separate them by brackets with another regex
       else {
-        customRegex += `[${matched.substring(3, matched.length - 2)}]`;
+        customRegex += `${matched.substring(2, matched.length)}`;
       }
 
       matchedInfo.matchedIndex = matchedIndex;
@@ -450,7 +427,6 @@ const sortOrder = (userInput, reqThreeMatch, ...args) => {
       // the initial regex value from 0 to indexes[0]
       if (reqMatches[j]) {
         if (indexes[i] === reqMatches[j].matchedIndex) {
-          // console.log('oh hi',reqMatches[i])
           reqMatches[j].startIndex = reqMatches[j].fullLength;
           reqMatches[j].endIndex = i + 1 === indexes.length ? userInput.length + 1 : indexes[i + 1];
           result.push({...reqMatches[j]});
@@ -473,21 +449,61 @@ const createRegexStr = sortedReq => {
 
   if (sortedReq.length === 1) {
     if (sortedReq[0].customRegex !== standardRegex) {
-      const finalRegex = `${standardRegex}|${sortedReq[0].customRegex}`;
-      sortedReq[0].combinedRegex = finalRegex;
+      const delimiters = sortedReq[0].customRegex.split(new RegExp('\\[(.*?)\\]', 'g'));
+      for (let k = 0; k < delimiters.length; k++) {
+        if ((delimiters[0] !== '/' && delimiters[1] !== '/') && delimiters[k].length > 0) {
+          standardRegex += `|(${delimiters[k]})`
+        }
+      }
+      sortedReq[0].combinedRegex = standardRegex;
     } else {
       sortedReq[0].combinedRegex = standardRegex;
     }
-    return;
-  }
-  for (let i = 0; i < sortedReq.length; i++) {
-    const currentReqObj = sortedReq[i];
-    if (currentReqObj.customRegex !== standardRegex) {
-      standardRegex += `|${currentReqObj.customRegex}`
+  } else {
+    for (let i = 0; i < sortedReq.length; i++) {
+      const currentReqObj = sortedReq[i];
+      if (currentReqObj.customRegex !== standardRegex) {
+        const delimiters = currentReqObj.customRegex.split(new RegExp('\\[(.*?)\\]', 'g'));
+        for (let j = 0; j < delimiters.length; j++) {
+          if ((delimiters[0] !== '/' && delimiters[1] !== '/') && delimiters[j].length > 0) {
+            standardRegex += `|(${delimiters[j]})`
+          }
+        }
+      }
+      currentReqObj.combinedRegex = standardRegex;
     }
-    currentReqObj.combinedRegex = standardRegex;
   }
 }
+/**
+ * 
+ * @param {array of objects} sortedReq 
+ * This function will split the delimiters and adds escape char for any char that is not -
+ * a number or letter and re-assign to customRegex
+ * Need escape characters for non-numbers and non-letters char because symbols have functionality in regex
+ */
+const escapeSpecialChar = sortedReq => {
+  const checkValid = new RegExp('^([0-9]|[a-zA-Z])$');
+  for (let i = 0; i < sortedReq.length; i++) {
+    const delimiters = sortedReq[i].customRegex.split(new RegExp('\\[(.*?)\\]', 'g'));
+    sortedReq[i].customRegex = '';
+    for (let j = 0; j < delimiters.length; j++) {
+      if (delimiters[j].length > 0 && delimiters[j] !== '') {
+        sortedReq[i].customRegex += '[';
+        const currStr = delimiters[j];
+        for (let k = 0; k < currStr.length; k++) {
+          const currChar = currStr[k];
+          const matched = currChar.match(checkValid);
+          if (matched && currChar.length > 0) {
+            sortedReq[i].customRegex += currChar;
+          } else if (!matched && currChar.length > 0) {
+            sortedReq[i].customRegex += (currChar === '\n') ? `${currChar}` : `\\${currChar}`;
+          }
+        }
+        sortedReq[i].customRegex += ']';
+      }
+    }
+  }
+};
 /**
  * 
  * @param {array} parsedStrFromRegex 
@@ -508,6 +524,31 @@ const calculateAllRegex = parsedStrFromRegex => {
   return sum;
 }
 /**
+ * 
+ * @param {string} userInput 
+ * @param {regex} findReqDelimiter 
+ * The purpose of this function is to distinguish between a custom delimiter with one enclosing bracket
+ * and multiple enclosing brackets
+ */
+const checkPattern = (userInput, findReqDelimiter) => {
+  const delimiter = userInput.match(findReqDelimiter);
+  let numOfBrackets;
+  if (delimiter !== null) {
+    // index 0 contains the matched string
+    // preFindReqSevenDelimiter will check 'globally' if there are multiple enclosing brackets or not
+     numOfBrackets = delimiter[0].match(preFindReqSevenDelimiter);
+     // if there's only one then it satisfies reqSevenRegex
+    if (numOfBrackets.length === 1) {
+      return 1;
+    }
+    // if there's more than two then it satisfies reqEightRegex
+    if (numOfBrackets.length >= 2) {
+      return 2;
+    }
+  }
+  return -1;
+};
+/**
  *
  * @param {string} userInput
  * This function will look for previous delimiter requirements,
@@ -520,6 +561,38 @@ const calculateSeven = userInput => {
     const reqSixMatch = createCustomRegexForAll(userInput, findReqSixDelimiter, multiReqSixRegex);
     const reqSevenMatch = createCustomRegexForAll(userInput, findReqSevenDelimiter, multiReqSevenRegex);
     const sortedReq = sortOrder(userInput, reqThreeMatch, reqSixMatch, reqSevenMatch);
+    escapeSpecialChar(sortedReq);
+    createRegexStr(sortedReq);
+    // parsedStrFromRegex holds an array of strings that have been parsed from various requirements above
+    const parsedStrFromRegex = sortedReq.reduce((arrOfStr, currRegex) => {
+      arrOfStr.push(createStr(userInput, currRegex));
+      return arrOfStr;
+    }, []);
+    return calculateAllRegex(parsedStrFromRegex);
+  } catch (e) {
+    return e;
+  }
+};
+/**
+ * 
+ * @param {string} userInput 
+ * This function will look for previous delimiter requirements,
+ * 1 custom delimiter that is provided, a custom delimiter with any length and -
+ * multiple custom delimiters with any length
+ * Will finalize calculation by applying the above requirements.
+ */
+const calculateEight = userInput => {
+  try {
+    const reqThreeMatch = { startIndex: -1, endIndex: -1, matchedIndex: -1, customRegex: '[,\\n]', fullLength: 0 }
+    const reqSixMatch = createCustomRegexForAll(userInput, findReqSixDelimiter, multiReqSixRegex, null);
+    const reqSevenMatch = checkPattern(userInput, findReqSevenDelimiter) === 1
+                          ? createCustomRegexForAll(userInput, findReqSevenDelimiter, multiReqSevenRegex) 
+                          : null;
+    const reqEightMatch = checkPattern(userInput, findReqEightDelimiter) >= 2
+                          ? createCustomRegexForAll(userInput, findReqEightDelimiter, multiReqEightRegex)
+                          : null;
+    const sortedReq = sortOrder(userInput, reqThreeMatch, reqSixMatch, reqSevenMatch, reqEightMatch);
+    escapeSpecialChar(sortedReq);
     createRegexStr(sortedReq);
     // parsedStrFromRegex holds an array of strings that have been parsed from various requirements above
     const parsedStrFromRegex = sortedReq.reduce((arrOfStr, currRegex) => {
@@ -540,4 +613,5 @@ module.exports = {
   calculateFive,
   calculateSix,
   calculateSeven,
+  calculateEight,
 };
